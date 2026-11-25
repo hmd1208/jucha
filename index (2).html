@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="제일교회 주차">
+<meta name="theme-color" content="#1f3a5f">
+<title>서울제일교회 주차관리</title>
+<style>
+  @font-face { font-family: 'SCoreDream'; font-weight: 400;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-4Regular.woff') format('woff'); }
+  @font-face { font-family: 'SCoreDream'; font-weight: 700;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-6Bold.woff') format('woff'); }
+
+  :root { --navy:#1f3a5f; --navy-2:#2d5283; --bg:#f4f6f9; --card:#fff; --line:#dde3ea; --ink:#1d2430;
+          --mute:#6b7686; --ok:#1f8a4c; --warn:#c0392b; --wait:#b7791f; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:'SCoreDream',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+         background:var(--bg); color:var(--ink); -webkit-text-size-adjust:100%; }
+  header { background:var(--navy); color:#fff; padding:calc(14px + env(safe-area-inset-top)) 18px 14px; }
+  header h1 { margin:0; font-size:18px; font-weight:700; letter-spacing:-.3px; }
+  header small { opacity:.8; font-size:12px; }
+  nav { display:flex; background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:4; overflow-x:auto; }
+  nav button { flex:1; min-width:64px; padding:13px 4px; border:0; background:none; font:inherit; font-size:15px;
+               color:var(--mute); border-bottom:3px solid transparent; white-space:nowrap; }
+  nav button.on { color:var(--navy); border-bottom-color:var(--navy); font-weight:700; }
+  main { padding:16px; max-width:640px; margin:0 auto; padding-bottom:80px; }
+  section { display:none; } section.on { display:block; }
+  h2 { font-size:17px; margin:4px 0 12px; }
+
+  .search { font-size:26px; text-align:center; letter-spacing:2px; padding:16px; width:100%;
+            border:2px solid var(--navy); border-radius:14px; font-family:inherit; }
+  .hint { color:var(--mute); font-size:13px; text-align:center; margin:8px 0 16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:12px; }
+  .plate { display:inline-block; font-size:21px; font-weight:700; border:2px solid var(--ink); border-radius:6px;
+           padding:2px 10px; letter-spacing:1px; background:#fff; }
+  .who { font-size:18px; margin:10px 0 2px; font-weight:700; }
+  .meta { color:var(--mute); font-size:14px; }
+  .actions { display:flex; gap:8px; margin-top:14px; }
+  .actions a, .actions button { flex:1; text-align:center; text-decoration:none; padding:12px 0; border-radius:10px;
+           font:inherit; font-size:15px; font-weight:700; border:0; }
+  .call { background:var(--ok); color:#fff; } .sms { background:var(--navy-2); color:#fff; }
+  .soft { background:#eef1f5; color:var(--ink); }
+  .okb { background:var(--ok); color:#fff; } .nob { background:#fff; color:var(--warn); border:1px solid var(--warn) !important; }
+  .empty { text-align:center; color:var(--mute); padding:28px 0; }
+
+  label { display:block; font-size:14px; color:var(--mute); margin:12px 0 4px; }
+  input, textarea, select { width:100%; padding:12px; font:inherit; font-size:16px; border:1px solid var(--line);
+           border-radius:10px; background:#fff; color:var(--ink); }
+  .btn { width:100%; padding:15px; border:0; border-radius:12px; background:var(--navy); color:#fff;
+         font:inherit; font-size:17px; font-weight:700; margin-top:18px; }
+  .btn.ghost { background:#eef1f5; color:var(--ink); margin-top:10px; }
+  .btn.danger { background:#fff; color:var(--warn); border:1px solid var(--warn); margin-top:10px; }
+  .btn:disabled { opacity:.5; }
+  .row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .row:last-child { border-bottom:0; }
+  .badge { display:inline-block; font-size:12px; font-weight:700; padding:3px 9px; border-radius:20px; color:#fff; vertical-align:middle; }
+  .b-대기 { background:var(--wait); } .b-승인 { background:var(--ok); } .b-반려 { background:var(--warn); } .b-취소 { background:#98a2b3; }
+  .stats { display:flex; gap:8px; margin:10px 0 4px; }
+  .stats div { flex:1; background:#eef1f5; border-radius:10px; padding:10px; text-align:center; font-size:13px; color:var(--mute); }
+  .stats b { display:block; font-size:20px; color:var(--ink); }
+  .banner { background:#fff6e0; border:1px solid #f0d58a; color:#7a5b00; padding:10px 14px; border-radius:10px; font-size:13px; margin-bottom:14px; line-height:1.5; }
+  .toast { position:fixed; left:50%; bottom:30px; transform:translateX(-50%); background:rgba(20,30,45,.92); color:#fff;
+           padding:12px 20px; border-radius:30px; font-size:15px; opacity:0; transition:opacity .25s; pointer-events:none; z-index:9; max-width:90%; text-align:center; }
+  .toast.show { opacity:1; }
+  .inline { display:flex; gap:8px; } .inline > * { flex:1; }
+  [hidden] { display:none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>서울제일교회 주차관리</h1>
+  <small id="status">불러오는 중…</small>
+</header>
+
+<nav id="nav"></nav>
+
+<main>
+  <div id="demo" class="banner" hidden>
+    <b>체험 모드</b> — 예시 데이터로 움직이며 저장되지 않습니다.<br>
+    설정에서 암호를 <b>member</b>로 넣으면 교인 화면, <b>admin</b>으로 넣으면 관리자 화면이 나옵니다.
+  </div>
+
+  <!-- ===== 교인: 주차 신청 ===== -->
+  <section id="apply">
+    <h2>주차 신청</h2>
+    <div class="card">
+      <label>주차할 날짜</label><input type="date" id="a-date">
+      <div class="stats" id="a-stats"></div>
+      <label>차량</label>
+      <select id="a-car"></select>
+      <label>사유</label>
+      <select id="a-reason">
+        <option>주일예배</option><option>새벽·수요·금요예배</option><option>교회 행사</option>
+        <option>모임·교육</option><option>장애·노약자 동승</option><option>기타</option>
+      </select>
+      <input id="a-reason2" placeholder="덧붙일 말 (선택)" style="margin-top:8px">
+      <button class="btn" id="a-submit">신청하기</button>
+    </div>
+    <p class="hint">신청 뒤 관리자가 승인하면 '내 신청'에서 확인할 수 있습니다</p>
+  </section>
+
+  <!-- ===== 교인: 내 차량 ===== -->
+  <section id="mycars">
+    <h2>내 차량</h2>
+    <div id="mycars-list"></div>
+    <button class="btn" id="mycars-add">＋ 차량 등록하기</button>
+  </section>
+
+  <!-- ===== 교인: 내 신청 ===== -->
+  <section id="myapps">
+    <h2>내 신청</h2>
+    <div class="card" id="myapps-list"><div class="empty">불러오는 중…</div></div>
+  </section>
+
+  <!-- ===== 관리자: 차주 찾기 ===== -->
+  <section id="find">
+    <input id="q" class="search" inputmode="search" placeholder="차량번호 뒤 4자리" autocomplete="off">
+    <p class="hint">차량번호 일부, 이름, 소속, 연락처 뒷자리로 찾을 수 있습니다</p>
+    <div id="results"></div>
+  </section>
+
+  <!-- ===== 관리자: 신청 관리 ===== -->
+  <section id="manage">
+    <div class="inline">
+      <input type="date" id="m-date">
+      <select id="m-filter"><option value="">전체</option><option>대기</option><option>승인</option><option>반려</option><option>취소</option></select>
+    </div>
+    <div class="stats" id="m-stats"></div>
+    <button class="btn ghost" id="m-approve-all">대기 중인 신청 모두 승인</button>
+    <div id="m-list" style="margin-top:12px"></div>
+  </section>
+
+  <!-- ===== 관리자: 명부 ===== -->
+  <section id="list">
+    <input id="lf" placeholder="명부에서 거르기 (이름·소속·번호)" style="margin-bottom:12px">
+    <div class="meta" id="lcount" style="margin-bottom:8px"></div>
+    <div class="card" id="lbody"></div>
+    <button class="btn" id="list-add">＋ 차량 등록</button>
+  </section>
+
+  <!-- ===== 관리자: 연락 기록 ===== -->
+  <section id="logs">
+    <div class="card" id="logbody"><div class="empty">불러오는 중…</div></div>
+  </section>
+
+  <!-- ===== 공통: 차량 등록·수정 ===== -->
+  <section id="form">
+    <h2 id="f-title">차량 등록</h2>
+    <div class="card">
+      <input type="hidden" id="f-id">
+      <label>차량번호 *</label><input id="f-plate" placeholder="예: 12가 3456">
+      <label>이름 *</label><input id="f-name" placeholder="예: 홍길동 집사">
+      <div id="f-phone-wrap"><label>연락처</label><input id="f-phone" inputmode="tel" placeholder="010-0000-0000"></div>
+      <label>소속 (교구·부서·구역)</label><input id="f-group" placeholder="예: 3교구 / 찬양대">
+      <label>차종·색상</label><input id="f-model" placeholder="예: 흰색 쏘나타">
+      <label>메모</label><textarea id="f-memo" rows="2" placeholder="예: 주일 2부 예배, 장애인 주차 필요"></textarea>
+      <button class="btn" id="f-save">저장하기</button>
+      <button class="btn ghost" id="f-cancel">돌아가기</button>
+      <button class="btn danger" id="f-del" hidden>이 차량 삭제</button>
+    </div>
+  </section>
+
+  <!-- ===== 공통: 설정 ===== -->
+  <section id="setting">
+    <h2>설정</h2>
+    <div class="card">
+      <label>접속 암호</label><input id="s-key" type="password" autocomplete="off" placeholder="교회에서 안내받은 암호">
+      <label>내 이름</label><input id="s-name" placeholder="예: 홍길동 집사">
+      <label>내 연락처 (내 차량·내 신청을 찾는 데 씁니다)</label><input id="s-phone" inputmode="tel" placeholder="010-0000-0000">
+      <div id="s-admin" hidden>
+        <label>문자 안내 문구 ({차량번호} 자리에 번호가 들어갑니다)</label>
+        <textarea id="s-msg" rows="3"></textarea>
+      </div>
+      <button class="btn" id="s-save">저장하고 접속</button>
+    </div>
+    <p class="hint">설정은 이 휴대폰에만 저장됩니다</p>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   여기에 Apps Script 웹 앱 URL을 붙여넣으세요.
+   비워 두면 예시 데이터로 움직이는 '체험 모드'가 됩니다.
+   ============================================================ */
+const SCRIPT_URL = '';
+
+const DEFAULT_MSG = '안녕하세요, 서울제일교회 주차봉사팀입니다. {차량번호} 차량 이동을 부탁드립니다. 감사합니다.';
+const DEMO = !SCRIPT_URL;
+const TABS = {
+  member: [['apply', '주차신청'], ['mycars', '내 차량'], ['myapps', '내 신청'], ['setting', '설정']],
+  admin:  [['find', '찾기'], ['manage', '신청관리'], ['list', '명부'], ['logs', '기록'], ['setting', '설정']],
+  none:   [['setting', '설정']]
+};
+
+/* ---------- 휴대폰 저장소 (실패해도 앱은 동작) ---------- */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('sjc_' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('sjc_' + k, JSON.stringify(v)); } catch (e) {} }
+};
+
+let role = 'none', capacity = 0, cars = [], myCars = [], formBack = 'mycars';
+
+/* ---------- 서버 통신 ---------- */
+async function api(action, extra = {}) {
+  const req = { action, key: store.get('key', ''), phone: store.get('phone', ''), ...extra };
+  if (DEMO) return demo(req);
+  // text/plain 으로 보내야 브라우저 사전요청(CORS) 없이 Apps Script에 닿습니다
+  const res = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(req) });
+  const out = await res.json();
+  if (!out.ok) throw new Error(out.error || '오류가 났습니다');
+  return out.data;
+}
+
+/* ---------- 체험 모드: 서버와 같은 규칙을 브라우저 안에서 흉내 ---------- */
+const D = {
+  cars: [
+    { id: 'c1', plate: '12가 3456', name: '홍길동 장로', phone: '010-1234-5678', group: '1교구', model: '흰색 쏘나타', memo: '' },
+    { id: 'c2', plate: '345나 7890', name: '김영희 권사', phone: '010-2222-3333', group: '찬양대', model: '검정 카니발', memo: '' },
+    { id: 'c3', plate: '56다 3456', name: '이철수 집사', phone: '010-9876-5432', group: '청년부', model: '회색 아반떼', memo: '' }
+  ],
+  apps: [], logs: [], cap: 40
+};
+D.apps.push({ id: 'p1', at: '', date: nextSunday(), plate: '345나 7890', name: '김영희 권사', phone: '010-2222-3333', reason: '주일예배', status: '대기', spot: '', note: '' });
+function demo(r) {
+  const k = r.key === 'admin' ? 'admin' : r.key === 'member' ? 'member' : null;
+  if (!k) throw new Error('체험 모드 암호는 member 또는 admin 입니다');
+  const mine = x => digits(x.phone).length >= 8 && digits(x.phone) === digits(r.phone);
+  const need = () => { if (k !== 'admin') throw new Error('관리자만 할 수 있습니다'); };
+  const id = () => Math.random().toString(36).slice(2, 10);
+  switch (r.action) {
+    case 'whoami': return { role: k, capacity: D.cap };
+    case 'myCars': return D.cars.filter(mine);
+    case 'saveMyCar': r.car.phone = r.phone; /* falls through */
+    case 'save': {
+      if (r.action === 'save') need();
+      if (!r.car.plate || !r.car.name) throw new Error('차량번호와 이름은 꼭 입력해 주세요');
+      const i = D.cars.findIndex(c => c.id === r.car.id);
+      if (i >= 0) D.cars[i] = { ...r.car };
+      else {
+        const dup = D.cars.find(c => norm(c.plate) === norm(r.car.plate));
+        if (dup) throw new Error(`${r.car.plate}는 이미 ${dup.name} 님 차량으로 등록되어 있습니다`);
+        D.cars.push({ ...r.car, id: id() });
+      }
+      return {};
+    }
+    case 'removeMyCar': case 'remove': D.cars = D.cars.filter(c => c.id !== r.id); return {};
+    case 'apply': {
+      const live = D.apps.filter(a => a.date === r.app.date && a.status !== '반려' && a.status !== '취소');
+      if (live.some(a => norm(a.plate) === norm(r.app.plate))) throw new Error('이 날짜에 이미 신청한 차량입니다');
+      D.apps.unshift({ ...r.app, id: id(), at: new Date().toLocaleString('ko-KR'), status: '대기', spot: '', note: '' });
+      return { full: live.length >= D.cap };
+    }
+    case 'myApps': return D.apps.filter(mine);
+    case 'cancelApp': D.apps.find(a => a.id === r.id).status = '취소'; return {};
+    case 'dayCount': { const d = D.apps.filter(a => a.date === r.date);
+      return { capacity: D.cap, approved: d.filter(a => a.status === '승인').length, waiting: d.filter(a => a.status === '대기').length }; }
+    case 'list': need(); return D.cars;
+    case 'apps': need(); return D.apps.filter(a => !r.date || a.date === r.date);
+    case 'setApp': need(); Object.assign(D.apps.find(a => a.id === r.id), { status: r.status, spot: r.spot, note: r.note }); return {};
+    case 'log': need(); D.logs.unshift({ at: new Date().toLocaleString('ko-KR'), ...r.log }); return {};
+    case 'logs': need(); return D.logs;
+  }
+}
+
+/* ---------- 도우미 ---------- */
+function $(s) { return document.querySelector(s); }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function norm(s) { return String(s ?? '').replace(/[\s\-]/g, '').toLowerCase(); }
+function digits(s) { return String(s ?? '').replace(/\D/g, ''); }
+function ymd(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+function nextSunday() { const d = new Date(); d.setDate(d.getDate() + ((7 - d.getDay()) % 7)); return ymd(d); }
+function dayLabel(s) { const d = new Date(s + 'T00:00'); return isNaN(d) ? s : `${d.getMonth() + 1}월 ${d.getDate()}일(${'일월화수목금토'[d.getDay()]})`; }
+function badge(s) { return `<span class="badge b-${esc(s)}">${esc(s)}</span>`; }
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2600); }
+async function busy(btn, fn) { btn.disabled = true; try { await fn(); } catch (e) { toast(e.message); } btn.disabled = false; }
+
+/* ---------- 탭 ---------- */
+function buildNav() {
+  $('#nav').innerHTML = TABS[role].map(([id, t]) => `<button data-tab="${id}">${t}</button>`).join('');
+  $('#s-admin').hidden = role !== 'admin';
+}
+function showTab(t) {
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  document.querySelectorAll('section').forEach(s => s.classList.toggle('on', s.id === t));
+  ({ apply: renderApply, mycars: renderMyCars, myapps: renderMyApps, manage: renderManage,
+     list: renderList, logs: renderLogs, find: () => setTimeout(() => $('#q').focus(), 50) }[t] || (() => {}))();
+}
+
+/* ---------- 접속 ---------- */
+async function connect() {
+  if (!store.get('key', '')) { role = 'none'; buildNav(); $('#status').textContent = '설정에서 접속 암호를 넣어 주세요'; showTab('setting'); return; }
+  try {
+    const me = await api('whoami');
+    role = me.role; capacity = me.capacity;
+    buildNav();
+    if (role === 'admin') {
+      cars = await api('list'); store.set('cars', cars);
+      $('#status').textContent = `관리자 · 등록 차량 ${cars.length}대`;
+      showTab('find');
+    } else {
+      $('#status').textContent = `${store.get('name', '') || '교인'} 님 · 교인 화면`;
+      showTab(digits(store.get('phone', '')).length >= 8 ? 'apply' : 'setting');
+      if (digits(store.get('phone', '')).length < 8) toast('내 연락처를 넣어 주세요');
+    }
+  } catch (e) {
+    // 관리자는 연결이 끊겨도 휴대폰에 보관된 명부로 차주 찾기 가능
+    cars = store.get('cars', []);
+    role = cars.length ? 'admin' : 'none'; buildNav();
+    $('#status').textContent = cars.length ? `연결 안 됨 · 보관된 명부 ${cars.length}대로 검색` : '연결 안 됨';
+    showTab(cars.length ? 'find' : 'setting');
+    toast(e.message);
+  }
+}
+
+/* ---------- 교인: 주차 신청 ---------- */
+async function renderApply() {
+  if (!$('#a-date').value) $('#a-date').value = nextSunday();
+  $('#a-date').min = ymd(new Date());
+  try { myCars = await api('myCars'); } catch (e) { toast(e.message); }
+  $('#a-car').innerHTML = myCars.length
+    ? myCars.map(c => `<option value="${esc(c.id)}">${esc(c.plate)} ${c.model ? '· ' + esc(c.model) : ''}</option>`).join('')
+    : '<option value="">먼저 \'내 차량\'에서 차량을 등록해 주세요</option>';
+  $('#a-submit').disabled = !myCars.length;
+  renderDayStats('#a-stats', $('#a-date').value);
+}
+async function renderDayStats(sel, date) {
+  try {
+    const s = await api('dayCount', { date });
+    $(sel).innerHTML = `<div><b>${s.approved}</b>승인</div><div><b>${s.waiting}</b>대기</div>` +
+      (s.capacity ? `<div><b>${Math.max(0, s.capacity - s.approved)}</b>남은 자리</div>` : '');
+  } catch (e) { $(sel).innerHTML = ''; }
+}
+async function submitApply() {
+  const c = myCars.find(x => x.id === $('#a-car').value);
+  if (!c) return toast('차량을 골라 주세요');
+  const reason = [$('#a-reason').value, $('#a-reason2').value.trim()].filter(Boolean).join(' - ');
+  const r = await api('apply', { app: { date: $('#a-date').value, plate: c.plate, name: store.get('name', '') || c.name, phone: store.get('phone', ''), reason } });
+  $('#a-reason2').value = '';
+  toast(r && r.full ? '신청했습니다. 정원이 차서 대기로 접수됩니다' : `${dayLabel($('#a-date').value)} 주차를 신청했습니다`);
+  showTab('myapps');
+}
+
+/* ---------- 교인: 내 차량 ---------- */
+async function renderMyCars() {
+  const box = $('#mycars-list');
+  try { myCars = await api('myCars'); } catch (e) { box.innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
+  box.innerHTML = myCars.length ? myCars.map(c => `<div class="card">
+      <span class="plate">${esc(c.plate)}</span>
+      <div class="meta" style="margin-top:8px">${[c.model, c.group].filter(Boolean).map(esc).join(' · ') || '&nbsp;'}</div>
+      <div class="actions"><button class="soft" data-edit="${esc(c.id)}" data-from="mycars">수정</button></div>
+    </div>`).join('') : '<div class="card empty">등록된 차량이 없습니다.<br>차량을 등록해야 주차 신청을 할 수 있습니다.</div>';
+}
+
+/* ---------- 교인: 내 신청 ---------- */
+async function renderMyApps() {
+  const box = $('#myapps-list');
+  try {
+    const apps = await api('myApps');
+    const today = ymd(new Date());
+    box.innerHTML = apps.length ? apps.map(a => `<div class="row">
+        <div><b>${esc(dayLabel(a.date))}</b> ${badge(a.status)}
+          <div class="meta">${esc(a.plate)} · ${esc(a.reason)}${a.spot ? ` · 구역 <b>${esc(a.spot)}</b>` : ''}</div>
+          ${a.note ? `<div class="meta">💬 ${esc(a.note)}</div>` : ''}</div>
+        ${(a.status === '대기' || a.status === '승인') && a.date >= today
+          ? `<button class="btn danger" style="width:auto;margin:0;padding:8px 12px;font-size:14px" data-cancel="${esc(a.id)}">취소</button>` : ''}
+      </div>`).join('') : '<div class="empty">신청 내역이 없습니다</div>';
+  } catch (e) { box.innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+/* ---------- 관리자: 차주 찾기 ---------- */
+function match(c, q) {
+  const n = norm(q); if (!n) return false;
+  const d = digits(q);
+  return norm(c.plate).includes(n) || norm(c.name).includes(n) || norm(c.group).includes(n) ||
+         (d.length >= 4 && digits(c.phone).endsWith(d));
+}
+function carCard(c) {
+  const tel = digits(c.phone);
+  const msg = store.get('msg', DEFAULT_MSG).replaceAll('{차량번호}', c.plate);
+  const contact = tel
+    ? `<a class="call" href="tel:${tel}" data-log="전화" data-id="${esc(c.id)}">📞 전화</a>
+       <a class="sms" href="sms:${tel}?&body=${encodeURIComponent(msg)}" data-log="문자" data-id="${esc(c.id)}">✉️ 문자</a>`
+    : `<span class="meta" style="flex:1;align-self:center">연락처 미등록</span>`;
+  return `<div class="card">
+    <span class="plate">${esc(c.plate)}</span>
+    <div class="who">${esc(c.name)}</div>
+    <div class="meta">${[c.group, c.model, c.phone].filter(Boolean).map(esc).join(' · ')}</div>
+    ${c.memo ? `<div class="meta" style="margin-top:4px">📝 ${esc(c.memo)}</div>` : ''}
+    <div class="actions">${contact}<button class="soft" style="flex:0 0 64px" data-edit="${esc(c.id)}" data-from="find">수정</button></div>
+  </div>`;
+}
+function renderResults() {
+  const q = $('#q').value.trim();
+  if (!q) { $('#results').innerHTML = ''; return; }
+  const found = cars.filter(c => match(c, q));
+  $('#results').innerHTML = found.length ? found.map(carCard).join('') :
+    `<div class="empty">찾는 차량이 없습니다.<br><button class="btn ghost" id="addFromSearch">이 번호로 새로 등록</button></div>`;
+}
+
+/* ---------- 관리자: 신청 관리 ---------- */
+let manageApps = [];
+async function renderManage() {
+  if (!$('#m-date').value) $('#m-date').value = nextSunday();
+  const date = $('#m-date').value, f = $('#m-filter').value;
+  renderDayStats('#m-stats', date);
+  try { manageApps = await api('apps', { date }); } catch (e) { $('#m-list').innerHTML = `<div class="empty">${esc(e.message)}</div>`; return; }
+  const list = manageApps.filter(a => !f || a.status === f);
+  $('#m-approve-all').hidden = !manageApps.some(a => a.status === '대기');
+  $('#m-list').innerHTML = list.length ? list.map(a => {
+    const car = cars.find(c => norm(c.plate) === norm(a.plate));
+    return `<div class="card">
+      <span class="plate" style="font-size:18px">${esc(a.plate)}</span> ${badge(a.status)}
+      <div class="who" style="font-size:16px">${esc(a.name)} <span class="meta">${esc(a.phone)}</span></div>
+      <div class="meta">${esc(a.reason)}${car && car.group ? ' · ' + esc(car.group) : ''}${car ? '' : ' · ⚠️ 명부에 없는 차량'}</div>
+      <div class="inline" style="margin-top:10px">
+        <input placeholder="배정 구역 (예: B-12)" value="${esc(a.spot)}" data-spot="${esc(a.id)}">
+        <input placeholder="안내 메모" value="${esc(a.note)}" data-note="${esc(a.id)}">
+      </div>
+      <div class="actions">
+        <button class="okb" data-set="승인" data-id="${esc(a.id)}">승인</button>
+        <button class="nob" data-set="반려" data-id="${esc(a.id)}">반려</button>
+        <button class="soft" data-set="대기" data-id="${esc(a.id)}">대기로</button>
+      </div>
+    </div>`;
+  }).join('') : `<div class="card empty">${esc(dayLabel(date))} 신청이 없습니다</div>`;
+}
+async function setApp(id, status) {
+  const spot = $(`[data-spot="${id}"]`)?.value.trim() || '';
+  const note = $(`[data-note="${id}"]`)?.value.trim() || '';
+  await api('setApp', { id, status, spot, note });
+  toast(`${status} 처리했습니다`);
+  renderManage();
+}
+
+/* ---------- 관리자: 명부 / 기록 ---------- */
+function renderList() {
+  const f = $('#lf').value.trim();
+  const rows = cars.filter(c => !f || match(c, f)).sort((a, b) => String(a.name).localeCompare(String(b.name), 'ko'));
+  $('#lcount').textContent = `${rows.length}대`;
+  $('#lbody').innerHTML = rows.length ? rows.map(c => `<div class="row">
+      <div><b>${esc(c.plate)}</b><div class="meta">${esc(c.name)}${c.group ? ' · ' + esc(c.group) : ''}</div></div>
+      <button class="btn ghost" style="width:auto;margin:0;padding:8px 14px;font-size:14px" data-edit="${esc(c.id)}" data-from="list">수정</button>
+    </div>`).join('') : '<div class="empty">등록된 차량이 없습니다</div>';
+}
+async function renderLogs() {
+  try {
+    const logs = await api('logs', { limit: 100 });
+    $('#logbody').innerHTML = logs.length ? logs.map(l => `<div class="row"><div><b>${esc(l.plate)}</b> ${esc(l.name)}
+      <div class="meta">${esc(l.at)} · ${esc(l.method)}${l.by ? ' · ' + esc(l.by) : ''}</div></div></div>`).join('')
+      : '<div class="empty">아직 연락 기록이 없습니다</div>';
+  } catch (e) { $('#logbody').innerHTML = `<div class="empty">${esc(e.message)}</div>`; }
+}
+
+/* ---------- 차량 등록·수정 (교인/관리자 공통) ---------- */
+const FIELDS = ['id', 'plate', 'name', 'phone', 'group', 'model', 'memo'];
+function openForm(c, from) {
+  formBack = from;
+  c = c || (role === 'member' ? { name: store.get('name', '') } : {});
+  FIELDS.forEach(k => $('#f-' + k).value = c[k] || '');
+  $('#f-phone-wrap').hidden = role === 'member';   // 교인은 설정의 내 연락처로 자동 등록
+  $('#f-del').hidden = !c.id;
+  $('#f-title').textContent = c.id ? '차량 정보 고치기' : '차량 등록';
+  showTab('form');
+}
+async function saveForm() {
+  const car = {}; FIELDS.forEach(k => car[k] = $('#f-' + k).value.trim());
+  if (!car.plate || !car.name) return toast('차량번호와 이름은 꼭 적어 주세요');
+  if (role === 'member') await api('saveMyCar', { car });
+  else { await api('save', { car }); cars = await api('list'); store.set('cars', cars); }
+  toast(car.id ? '고쳤습니다' : '등록했습니다');
+  showTab(formBack);
+}
+async function deleteCar() {
+  const id = $('#f-id').value;
+  if (!id || !confirm('이 차량을 삭제할까요?')) return;
+  if (role === 'member') await api('removeMyCar', { id });
+  else { await api('remove', { id }); cars = await api('list'); store.set('cars', cars); }
+  toast('삭제했습니다'); showTab(formBack);
+}
+
+/* ---------- 이벤트 ---------- */
+document.addEventListener('click', e => {
+  const t = e.target;
+  const tab = t.closest('[data-tab]'); if (tab) return showTab(tab.dataset.tab);
+  const ed = t.closest('[data-edit]');
+  if (ed) { const pool = role === 'member' ? myCars : cars; return openForm(pool.find(c => String(c.id) === ed.dataset.edit), ed.dataset.from); }
+  const st = t.closest('[data-set]'); if (st) return busy(st, () => setApp(st.dataset.id, st.dataset.set));
+  const cn = t.closest('[data-cancel]');
+  if (cn) { if (confirm('이 신청을 취소할까요?')) busy(cn, async () => { await api('cancelApp', { id: cn.dataset.cancel }); toast('취소했습니다'); renderMyApps(); }); return; }
+  const lg = t.closest('[data-log]');
+  if (lg) {   // 전화·문자 앱은 그대로 열리고, 기록만 뒤에서 남김
+    const c = cars.find(x => String(x.id) === lg.dataset.id);
+    if (c) api('log', { log: { plate: c.plate, name: c.name, method: lg.dataset.log, by: store.get('name', '') } }).catch(() => {});
+    return;
+  }
+  if (t.id === 'addFromSearch') openForm({ plate: $('#q').value.trim() }, 'find');
+});
+
+$('#q').oninput = renderResults;
+$('#lf').oninput = renderList;
+$('#a-date').onchange = () => renderDayStats('#a-stats', $('#a-date').value);
+$('#a-submit').onclick = e => busy(e.target, submitApply);
+$('#mycars-add').onclick = () => openForm(null, 'mycars');
+$('#list-add').onclick = () => openForm(null, 'list');
+$('#m-date').onchange = renderManage;
+$('#m-filter').onchange = renderManage;
+$('#m-approve-all').onclick = e => busy(e.target, async () => {
+  const wait = manageApps.filter(a => a.status === '대기');
+  if (!confirm(`대기 중인 ${wait.length}건을 모두 승인할까요?`)) return;
+  for (const a of wait) await api('setApp', { id: a.id, status: '승인', spot: a.spot, note: a.note });
+  toast(`${wait.length}건 승인했습니다`); renderManage();
+});
+$('#f-save').onclick = e => busy(e.target, saveForm);
+$('#f-del').onclick = e => busy(e.target, deleteCar);
+$('#f-cancel').onclick = () => showTab(formBack);
+
+$('#s-key').value = store.get('key', '');
+$('#s-name').value = store.get('name', '');
+$('#s-phone').value = store.get('phone', '');
+$('#s-msg').value = store.get('msg', DEFAULT_MSG);
+$('#s-save').onclick = () => {
+  store.set('key', $('#s-key').value.trim());
+  store.set('name', $('#s-name').value.trim());
+  store.set('phone', $('#s-phone').value.trim());
+  store.set('msg', $('#s-msg').value.trim() || DEFAULT_MSG);
+  toast('저장했습니다'); connect();
+};
+
+/* ---------- 시작 ---------- */
+if (DEMO) $('#demo').hidden = false;
+connect();
+</script>
+</body>
+</html>
